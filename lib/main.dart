@@ -35,20 +35,26 @@ class _MainAppState extends State<MainApp> {
           listenable: _gameModel,
           builder: (context, _) {
             return SafeArea(
-              child: Stack(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    color: Colors.white,
-                    child: Column(
-                      children: _gameModel.board
-                          .map<Widget>(
-                            (row) => Expanded(
-                              child: Row(
-                                children: row
-                                    .map<Widget>(
-                                      (isFilled) => Expanded(
-                                        child: Container(
+              child: LayoutBuilder(builder: (context, constraints) {
+                final cellSize = ((constraints.maxWidth - 20) -
+                        (GameModel.boardWidth - 1) * 5) /
+                    GameModel.boardWidth;
+                return Stack(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      alignment: Alignment.bottomCenter,
+                      color: Colors.white,
+                      child: Column(
+                        children: _gameModel.board
+                            .map<Widget>(
+                              (row) => Expanded(
+                                child: Row(
+                                  children: row
+                                      .map<Widget>(
+                                        (isFilled) => Container(
+                                          height: cellSize,
+                                          width: cellSize,
                                           decoration: BoxDecoration(
                                             borderRadius:
                                                 BorderRadius.circular(5),
@@ -57,133 +63,135 @@ class _MainAppState extends State<MainApp> {
                                                 : Colors.black,
                                           ),
                                         ),
-                                      ),
-                                    )
-                                    .toList()
-                                    .separate(const SizedBox(width: 5)),
-                              ),
-                            ),
-                          )
-                          .toList()
-                          .separate(const SizedBox(height: 5)),
-                    ),
-                  ),
-                  if (_gameModel.isGameOver)
-                    Center(
-                      child: Container(
-                        height: MediaQuery.of(context).size.height * 0.4,
-                        width: MediaQuery.of(context).size.width * 0.8,
-                        decoration: BoxDecoration(
-                          color: Colors.black54,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Game Over',
-                              style: TextStyle(
-                                color: Colors.amber,
-                                fontSize: 40,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              'Your result is ${_gameModel.seconds} sec',
-                              style: const TextStyle(
-                                color: Colors.amber,
-                                fontSize: 20,
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              'Your record is ${_gameModel.record} sec',
-                              style: const TextStyle(
-                                color: Colors.amber,
-                                fontSize: 20,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            ElevatedButton.icon(
-                              onPressed: _gameModel.init,
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    WidgetStateProperty.all(Colors.amber),
-                              ),
-                              label: const Text(
-                                'New Game',
-                                style: TextStyle(
-                                  fontSize: 30,
-                                  color: Colors.black,
+                                      )
+                                      .toList()
+                                      .separate(const Spacer()),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
+                            )
+                            .toList()
+                            .separate(const SizedBox(height: 5)),
                       ),
                     ),
-                  if (!_gameModel.isGameOver)
-                    Positioned(
-                      bottom: 20,
-                      left: 0,
-                      right: 0,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            FloatingActionButton(
-                              backgroundColor: Colors.black26,
-                              onPressed: _gameModel.moveCurrentFigureToTheLeft,
-                              child: const Icon(
-                                Icons.arrow_left,
-                                size: 40,
-                                color: Colors.amber,
+                    if (_gameModel.isGameOver)
+                      Center(
+                        child: Container(
+                          height: MediaQuery.of(context).size.height * 0.4,
+                          width: MediaQuery.of(context).size.width * 0.8,
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Game Over',
+                                style: TextStyle(
+                                  color: Colors.amber,
+                                  fontSize: 40,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            FloatingActionButton(
-                              backgroundColor: Colors.black26,
-                              onPressed: _gameModel.moveCurrentFigureToTheRight,
-                              child: const Icon(
-                                Icons.arrow_right,
-                                size: 40,
-                                color: Colors.amber,
+                              const SizedBox(height: 10),
+                              Text(
+                                'Your result is ${_gameModel.figuresUsed} figures',
+                                style: const TextStyle(
+                                  color: Colors.amber,
+                                  fontSize: 20,
+                                ),
                               ),
-                            ),
-                            InkWell(
-                              splashColor: Colors.transparent,
-                              onTapDown: (_) {
-                                _gameModel.accelerate();
-                              },
-                              onTapCancel: () {
-                                _gameModel.decelerate();
-                              },
-                              child: FloatingActionButton(
+                              const SizedBox(height: 5),
+                              Text(
+                                'Your record is ${_gameModel.record} figures',
+                                style: const TextStyle(
+                                  color: Colors.amber,
+                                  fontSize: 20,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              ElevatedButton.icon(
+                                onPressed: _gameModel.init,
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      WidgetStateProperty.all(Colors.amber),
+                                ),
+                                label: const Text(
+                                  'New Game',
+                                  style: TextStyle(
+                                    fontSize: 30,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    if (!_gameModel.isGameOver)
+                      Positioned(
+                        bottom: 20,
+                        left: 0,
+                        right: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              FloatingActionButton(
                                 backgroundColor: Colors.black26,
-                                onPressed: () {},
+                                onPressed:
+                                    _gameModel.moveCurrentFigureToTheLeft,
                                 child: const Icon(
-                                  Icons.arrow_downward,
+                                  Icons.arrow_left,
                                   size: 40,
                                   color: Colors.amber,
                                 ),
                               ),
-                            ),
-                            FloatingActionButton(
-                              backgroundColor: Colors.black26,
-                              onPressed: _gameModel.rotate,
-                              child: const Icon(
-                                Icons.rotate_right,
-                                size: 40,
-                                color: Colors.amber,
+                              FloatingActionButton(
+                                backgroundColor: Colors.black26,
+                                onPressed:
+                                    _gameModel.moveCurrentFigureToTheRight,
+                                child: const Icon(
+                                  Icons.arrow_right,
+                                  size: 40,
+                                  color: Colors.amber,
+                                ),
                               ),
-                            ),
-                          ],
+                              InkWell(
+                                splashColor: Colors.transparent,
+                                onTapDown: (_) {
+                                  _gameModel.accelerate();
+                                },
+                                onTapCancel: () {
+                                  _gameModel.decelerate();
+                                },
+                                child: FloatingActionButton(
+                                  backgroundColor: Colors.black26,
+                                  onPressed: () {},
+                                  child: const Icon(
+                                    Icons.arrow_downward,
+                                    size: 40,
+                                    color: Colors.amber,
+                                  ),
+                                ),
+                              ),
+                              FloatingActionButton(
+                                backgroundColor: Colors.black26,
+                                onPressed: _gameModel.rotate,
+                                child: const Icon(
+                                  Icons.rotate_right,
+                                  size: 40,
+                                  color: Colors.amber,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                ],
-              ),
+                  ],
+                );
+              }),
             );
           },
         ),

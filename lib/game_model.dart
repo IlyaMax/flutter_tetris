@@ -2,57 +2,34 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_tetris/figures.dart';
 import 'package:flutter_tetris/game_storage.dart';
 
 class GameModel extends ChangeNotifier {
   final GameStorage _gameStorage;
   GameModel(this._gameStorage);
-  static const int _boardWidth = 12;
-  static const int _boardHeight = 20;
+  static const int boardWidth = 12;
+  static const int boardHeight = 20;
   final Random _random = Random();
-
-  static const _figures = [
-    [
-      [true, true],
-      [true, true]
-    ],
-    [
-      [true, true, true],
-      [true, false, false],
-    ],
-    [
-      [true, false, false],
-      [true, true, true],
-    ],
-    [
-      [true, true, true, true],
-    ],
-    [
-      [false, true, true],
-      [true, true, false],
-    ],
-  ];
 
   late List<List<bool>> _currentFigure;
   late int _currentFigureX;
   late int _currentFigureY;
   late Timer _fallingFigureTimer;
   late Timer _acceleratedFallingFigureTimer;
-  late Timer _gameTimer;
 
   late List<List<bool>> board;
   late bool isGameOver;
-  late int seconds;
+  late int figuresUsed;
   int get record => _gameStorage.record!;
 
   void init() {
-    seconds = 0;
+    figuresUsed = 0;
     isGameOver = false;
     board = List.generate(
-        _boardHeight, (_) => List.generate(_boardWidth, (_) => false));
+        boardHeight, (_) => List.generate(boardWidth, (_) => false));
     _spawnNewFigure();
     _startFallingFigureTimer();
-    _startGameTimer();
   }
 
   @override
@@ -91,6 +68,11 @@ class GameModel extends ChangeNotifier {
   }
 
   void rotate() {
+    if (_currentFigureX + _currentFigure.length > boardWidth ||
+        _currentFigureY + _currentFigure[0].length > boardHeight) {
+      return;
+    }
+
     _removeFigureFromBoard();
     final newFigure = <List<bool>>[];
     for (int x = 0; x < _currentFigure[0].length; x++) {
@@ -117,12 +99,6 @@ class GameModel extends ChangeNotifier {
     );
   }
 
-  void _startGameTimer() {
-    _gameTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      seconds++;
-    });
-  }
-
   void _onFallingTimerTick() {
     if (_canBeMovedDown) {
       _removeFigureFromBoard();
@@ -135,6 +111,7 @@ class GameModel extends ChangeNotifier {
   }
 
   bool get _canBeMovedDown {
+    if (_currentFigureY + _currentFigure.length == boardHeight) return false;
     for (int x = _currentFigureX;
         x < _currentFigureX + _currentFigure[0].length;
         x++) {
@@ -142,7 +119,6 @@ class GameModel extends ChangeNotifier {
           y >= _currentFigureY;
           y--) {
         if (_currentFigure[y - _currentFigureY][x - _currentFigureX]) {
-          if (y + 1 == _boardHeight) return false;
           if (board[y + 1][x]) return false;
           break;
         }
@@ -176,7 +152,7 @@ class GameModel extends ChangeNotifier {
           x >= 0;
           x--) {
         if (_currentFigure[y - _currentFigureY][x - _currentFigureX]) {
-          if (x + 1 == _boardWidth) return false;
+          if (x + 1 == boardWidth) return false;
           if (board[y][x + 1]) return false;
           break;
         }
@@ -186,17 +162,17 @@ class GameModel extends ChangeNotifier {
   }
 
   void _spawnNewFigure() {
-    _currentFigure = _figures[_random.nextInt(_figures.length)];
-    _currentFigureX = _boardWidth ~/ 2 - _currentFigure[0].length ~/ 2;
+    _currentFigure = figures[_random.nextInt(figures.length)];
+    _currentFigureX = boardWidth ~/ 2 - _currentFigure[0].length ~/ 2;
     _currentFigureY = 0;
     if (!_isFigureCanBeAdded) _stopGame();
     _addFigureToBoard();
+    figuresUsed++;
   }
 
   void _stopGame() {
-    _gameStorage.saveRecord(seconds).then((_) {
+    _gameStorage.saveRecord(figuresUsed).then((_) {
       isGameOver = true;
-      _gameTimer.cancel();
       _fallingFigureTimer.cancel();
       _acceleratedFallingFigureTimer.cancel();
     });
@@ -250,11 +226,11 @@ class GameModel extends ChangeNotifier {
 
   void _removeFilledRows() {
     final newBoard = List.generate(
-      _boardHeight,
-      (_) => List.generate(_boardWidth, (_) => false),
+      boardHeight,
+      (_) => List.generate(boardWidth, (_) => false),
     );
-    int currentRowIndex = _boardHeight - 1;
-    for (int y = _boardHeight - 1; y >= 0; y--) {
+    int currentRowIndex = boardHeight - 1;
+    for (int y = boardHeight - 1; y >= 0; y--) {
       if (!board[y].every((el) => el)) {
         newBoard[currentRowIndex] = board[y];
         currentRowIndex--;
