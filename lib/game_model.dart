@@ -8,8 +8,9 @@ import 'package:flutter_tetris/game_storage.dart';
 class GameModel extends ChangeNotifier {
   final GameStorage _gameStorage;
   GameModel(this._gameStorage);
-  static const int boardWidth = 12;
-  static const int boardHeight = 20;
+  static int boardWidth = -1;
+  static int boardHeight = -1;
+  static const int cellSize = 20;
   final Random _random = Random();
 
   late List<List<bool>> _currentFigure;
@@ -19,11 +20,18 @@ class GameModel extends ChangeNotifier {
   late Timer _acceleratedFallingFigureTimer;
 
   late List<List<bool>> board;
-  late bool isGameOver;
+  bool isGameOver = false;
   late int figuresUsed;
   int get record => _gameStorage.record!;
 
-  void init() {
+  void init([Size? size]) {
+    if (boardWidth == -1) {
+      boardWidth = (size!.width - 15) ~/ (5 + cellSize);
+      boardHeight = (size.height - 15) ~/ (5 + cellSize);
+      print(size.width);
+      print(size.height);
+    }
+
     figuresUsed = 0;
     isGameOver = false;
     board = List.generate(
